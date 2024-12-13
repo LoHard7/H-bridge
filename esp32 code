@@ -3,56 +3,49 @@
 #define PIN_IN2 6  // Pino IN2 da ponte H
 #define PIN_ENA 9  // Pino ENA (PWM) da ponte H
 
-#include "pico/stdlib.h"
-#include "hardware/pwm.h"
+#include <Arduino.h>
 
 void setup() {
   // Configure os pinos como saída
-  gpio_init(PIN_IN1);
-  gpio_set_dir(PIN_IN1, GPIO_OUT);
-
-  gpio_init(PIN_IN2);
-  gpio_set_dir(PIN_IN2, GPIO_OUT);
-
-  gpio_set_function(PIN_ENA, GPIO_FUNC_PWM);
-  uint slice_num = pwm_gpio_to_slice_num(PIN_ENA);
-  pwm_set_wrap(slice_num, 1000);  // Ajusta o valor do wrap para aumentar a frequência do PWM
-  pwm_set_enabled(slice_num, true);
+  pinMode(PIN_IN1, OUTPUT);
+  pinMode(PIN_IN2, OUTPUT);
+  pinMode(PIN_ENA, OUTPUT);
 }
 
-void analogWrite(uint pin, uint value) {
-  uint slice_num = pwm_gpio_to_slice_num(pin);
-  pwm_set_gpio_level(pin, value * value / 255);  // Ajuste proporcional para o PWM
+void analogWrite(int pin, int value) {
+  ledcAttachPin(pin, 0); // Canal 0 para controle PWM
+  ledcSetup(0, 5000, 8); // Frequência de 5kHz, resolução de 8 bits
+  ledcWrite(0, value);   // Ajusta o PWM
 }
 
 void loop() {
   // Gira o motor em uma direção, aumentando a velocidade gradualmente
   for (int speed = 0; speed <= 255; speed += 10) { // Incremento maior para atingir velocidade mais rapidamente
-    gpio_put(PIN_IN1, 1);
-    gpio_put(PIN_IN2, 0);
+    digitalWrite(PIN_IN1, HIGH);
+    digitalWrite(PIN_IN2, LOW);
     analogWrite(PIN_ENA, speed);  // Ajusta a velocidade do motor
-    sleep_ms(100);  // Reduz o tempo de espera para acelerar mais rapidamente
+    delay(100);  // Reduz o tempo de espera para acelerar mais rapidamente
   }
 
   // Mantém o motor girando na velocidade máxima por 5 segundos
-  sleep_ms(5000);
+  delay(5000);
 
   // Para o motor brevemente antes de mudar de direção
   analogWrite(PIN_ENA, 0);
-  sleep_ms(1000);
+  delay(1000);
 
   // Gira o motor na direção oposta, aumentando a velocidade gradualmente
   for (int speed = 0; speed <= 255; speed += 10) { // Incremento maior para atingir velocidade mais rapidamente
-    gpio_put(PIN_IN1, 0);
-    gpio_put(PIN_IN2, 1);
+    digitalWrite(PIN_IN1, LOW);
+    digitalWrite(PIN_IN2, HIGH);
     analogWrite(PIN_ENA, speed);  // Ajusta a velocidade do motor
-    sleep_ms(100);  // Reduz o tempo de espera para acelerar mais rapidamente
+    delay(100);  // Reduz o tempo de espera para acelerar mais rapidamente
   }
 
   // Mantém o motor girando na velocidade máxima por 5 segundos
-  sleep_ms(5000);
+  delay(5000);
 
   // Para o motor brevemente antes de repetir o ciclo
   analogWrite(PIN_ENA, 0);
-  sleep_ms(1000);
+  delay(1000);
 }
