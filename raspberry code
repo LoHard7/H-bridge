@@ -1,0 +1,57 @@
+// Defina os pinos da ponte H
+#define PIN_IN1 5  // Pino IN1 da ponte H
+#define PIN_IN2 6  // Pino IN2 da ponte H
+#define PIN_ENA 9  // Pino ENA (PWM) da ponte H
+
+#include "pico/stdlib.h"
+#include "hardware/pwm.h"
+
+void setup() {
+  // Configure os pinos como saída
+  gpio_init(PIN_IN1);
+  gpio_set_dir(PIN_IN1, GPIO_OUT);
+
+  gpio_init(PIN_IN2);
+  gpio_set_dir(PIN_IN2, GPIO_OUT);
+
+  gpio_set_function(PIN_ENA, GPIO_FUNC_PWM);
+  uint slice_num = pwm_gpio_to_slice_num(PIN_ENA);
+  pwm_set_enabled(slice_num, true);
+}
+
+void analogWrite(uint pin, uint value) {
+  uint slice_num = pwm_gpio_to_slice_num(pin);
+  pwm_set_gpio_level(pin, value * value / 255);  // Ajuste proporcional para o PWM
+}
+
+void loop() {
+  // Gira o motor em uma direção, aumentando a velocidade gradualmente
+  for (int speed = 0; speed <= 255; speed += 5) {
+    gpio_put(PIN_IN1, 1);
+    gpio_put(PIN_IN2, 0);
+    analogWrite(PIN_ENA, speed);  // Ajusta a velocidade do motor
+    sleep_ms(200);  // Aguarda 200ms antes de aumentar a velocidade
+  }
+
+  // Mantém o motor girando na velocidade máxima por 5 segundos
+  sleep_ms(5000);
+
+  // Para o motor brevemente antes de mudar de direção
+  analogWrite(PIN_ENA, 0);
+  sleep_ms(1000);
+
+  // Gira o motor na direção oposta, aumentando a velocidade gradualmente
+  for (int speed = 0; speed <= 255; speed += 5) {
+    gpio_put(PIN_IN1, 0);
+    gpio_put(PIN_IN2, 1);
+    analogWrite(PIN_ENA, speed);  // Ajusta a velocidade do motor
+    sleep_ms(200);  // Aguarda 200ms antes de aumentar a velocidade
+  }
+
+  // Mantém o motor girando na velocidade máxima por 5 segundos
+  sleep_ms(5000);
+
+  // Para o motor brevemente antes de repetir o ciclo
+  analogWrite(PIN_ENA, 0);
+  sleep_ms(1000);
+}
