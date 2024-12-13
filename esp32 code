@@ -3,41 +3,56 @@
 #define PIN_IN2 6  // Pino IN2 da ponte H
 #define PIN_ENA 9  // Pino ENA (PWM) da ponte H
 
+#include "pico/stdlib.h"
+#include "hardware/pwm.h"
+
 void setup() {
   // Configure os pinos como saída
-  pinMode(PIN_IN1, OUTPUT);
-  pinMode(PIN_IN2, OUTPUT);
-  pinMode(PIN_ENA, OUTPUT);
+  gpio_init(PIN_IN1);
+  gpio_set_dir(PIN_IN1, GPIO_OUT);
+
+  gpio_init(PIN_IN2);
+  gpio_set_dir(PIN_IN2, GPIO_OUT);
+
+  gpio_set_function(PIN_ENA, GPIO_FUNC_PWM);
+  uint slice_num = pwm_gpio_to_slice_num(PIN_ENA);
+  pwm_set_wrap(slice_num, 1000);  // Ajusta o valor do wrap para aumentar a frequência do PWM
+  pwm_set_enabled(slice_num, true);
+}
+
+void analogWrite(uint pin, uint value) {
+  uint slice_num = pwm_gpio_to_slice_num(pin);
+  pwm_set_gpio_level(pin, value * value / 255);  // Ajuste proporcional para o PWM
 }
 
 void loop() {
   // Gira o motor em uma direção, aumentando a velocidade gradualmente
-  for (int speed = 0; speed <= 255; speed += 5) {
-    digitalWrite(PIN_IN1, HIGH);
-    digitalWrite(PIN_IN2, LOW);
+  for (int speed = 0; speed <= 255; speed += 10) { // Incremento maior para atingir velocidade mais rapidamente
+    gpio_put(PIN_IN1, 1);
+    gpio_put(PIN_IN2, 0);
     analogWrite(PIN_ENA, speed);  // Ajusta a velocidade do motor
-    delay(200);  // Aguarda 200ms antes de aumentar a velocidade
+    sleep_ms(100);  // Reduz o tempo de espera para acelerar mais rapidamente
   }
 
   // Mantém o motor girando na velocidade máxima por 5 segundos
-  delay(5000);
+  sleep_ms(5000);
 
   // Para o motor brevemente antes de mudar de direção
   analogWrite(PIN_ENA, 0);
-  delay(1000);
+  sleep_ms(1000);
 
   // Gira o motor na direção oposta, aumentando a velocidade gradualmente
-  for (int speed = 0; speed <= 255; speed += 5) {
-    digitalWrite(PIN_IN1, LOW);
-    digitalWrite(PIN_IN2, HIGH);
+  for (int speed = 0; speed <= 255; speed += 10) { // Incremento maior para atingir velocidade mais rapidamente
+    gpio_put(PIN_IN1, 0);
+    gpio_put(PIN_IN2, 1);
     analogWrite(PIN_ENA, speed);  // Ajusta a velocidade do motor
-    delay(200);  // Aguarda 200ms antes de aumentar a velocidade
+    sleep_ms(100);  // Reduz o tempo de espera para acelerar mais rapidamente
   }
 
   // Mantém o motor girando na velocidade máxima por 5 segundos
-  delay(5000);
+  sleep_ms(5000);
 
   // Para o motor brevemente antes de repetir o ciclo
   analogWrite(PIN_ENA, 0);
-  delay(1000);
+  sleep_ms(1000);
 }
