@@ -1,0 +1,43 @@
+// Defina os pinos da ponte H
+#define PIN_IN1 5  // Pino IN1 da ponte H
+#define PIN_IN2 6  // Pino IN2 da ponte H
+#define PIN_ENA 9  // Pino ENA (PWM) da ponte H
+
+void setup() {
+  // Configure os pinos como saída
+  pinMode(PIN_IN1, OUTPUT);
+  pinMode(PIN_IN2, OUTPUT);
+  pinMode(PIN_ENA, OUTPUT);
+}
+
+void loop() {
+  // Gira o motor em uma direção, aumentando a velocidade gradualmente
+  for (int speed = 0; speed <= 255; speed += 5) {
+    digitalWrite(PIN_IN1, HIGH);
+    digitalWrite(PIN_IN2, LOW);
+    analogWrite(PIN_ENA, speed);  // Ajusta a velocidade do motor
+    delay(200);  // Aguarda 200ms antes de aumentar a velocidade
+  }
+
+  // Mantém o motor girando na velocidade máxima por 5 segundos
+  delay(5000);
+
+  // Para o motor brevemente antes de mudar de direção
+  analogWrite(PIN_ENA, 0);
+  delay(1000);
+
+  // Gira o motor na direção oposta, aumentando a velocidade gradualmente
+  for (int speed = 0; speed <= 255; speed += 5) {
+    digitalWrite(PIN_IN1, LOW);
+    digitalWrite(PIN_IN2, HIGH);
+    analogWrite(PIN_ENA, speed);  // Ajusta a velocidade do motor
+    delay(200);  // Aguarda 200ms antes de aumentar a velocidade
+  }
+
+  // Mantém o motor girando na velocidade máxima por 5 segundos
+  delay(5000);
+
+  // Para o motor brevemente antes de repetir o ciclo
+  analogWrite(PIN_ENA, 0);
+  delay(1000);
+}
